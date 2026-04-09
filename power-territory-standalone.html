@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Power Territory - Wattbestwerte & Gebietseroberungen</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:#111827;color:#e5e7eb;min-height:100vh}
+header{background:linear-gradient(to right,#111827,#1f2937,#111827);border-bottom:1px solid #374151;padding:16px 24px}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo span{font-size:28px}
+.logo h1{font-size:20px;font-weight:700;color:#fff}
+.logo p{font-size:11px;color:#9ca3af}
+.players{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.players label{font-size:13px;color:#9ca3af}
+.player-btn{padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#d1d5db;background:#374151;transition:all .2s}
+.player-btn.active{color:#fff;box-shadow:0 0 0 2px #111827,0 0 0 4px currentColor}
+nav{background:#1f293799;border-bottom:1px solid #374151;padding:0 24px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.tabs{display:flex}
+.tab{padding:12px 20px;font-size:13px;font-weight:500;border:none;background:none;color:#9ca3af;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:#fff;border-bottom-color:#facc15}
+.reset-btn{font-size:11px;color:#6b7280;background:none;border:none;cursor:pointer}
+.reset-btn:hover{color:#ef4444}
+main{max-width:1200px;margin:0 auto;padding:20px}
+.card{background:#1f293780;border-radius:12px;border:1px solid #374151;overflow:hidden;margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid #374151;font-size:16px;font-weight:700;color:#fff}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:#1f293780;border-radius:12px;border:1px solid #374151;padding:16px}
+.stat .icon{font-size:16px}
+.stat .label{font-size:11px;color:#9ca3af}
+.stat .value{font-size:24px;font-weight:700;color:#fff;margin-top:4px}
+.territory-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:16px}
+.territory{border-radius:12px;border:2px solid #4b5563;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;background:linear-gradient(to bottom,#1f293766,#11182766);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.territory:hover{transform:scale(1.03);box-shadow:0 4px 12px #00000044}
+.territory.selected{box-shadow:0 0 0 2px #facc15,0 4px 16px #facc1533}
+.territory .icon{font-size:28px;margin-bottom:4px}
+.territory .name{font-size:11px;font-weight:700;color:#fff}
+.territory .diff{font-size:9px;padding:2px 8px;border-radius:99px;margin-top:4px;display:inline-block}
+.territory .owner{font-size:10px;margin-top:4px;font-weight:600}
+.territory .unowned{font-size:10px;color:#6b7280;margin-top:4px}
+.diff-leicht{background:#16a34a22;color:#4ade80;border-color:#16a34a66}
+.diff-mittel{background:#2563eb22;color:#60a5fa;border-color:#2563eb66}
+.diff-schwer{background:#ea580c22;color:#fb923c;border-color:#ea580c66}
+.diff-extrem{background:#dc262622;color:#f87171;border-color:#dc262666}
+.border-leicht{border-color:#16a34a66}
+.border-mittel{border-color:#2563eb66}
+.border-schwer{border-color:#ea580c66}
+.border-extrem{border-color:#dc262666}
+.modal-overlay{position:fixed;inset:0;background:#000000aa;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{background:#1f2937;border-radius:16px;border:1px solid #374151;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px #000000aa}
+.modal-header{padding:20px;border-bottom:1px solid #374151;display:flex;justify-content:space-between;align-items:start}
+.modal-header .info{display:flex;gap:12px;align-items:center}
+.modal-header .icon{font-size:36px}
+.modal-header h2{font-size:18px;font-weight:700;color:#fff}
+.modal-header p{font-size:12px;color:#9ca3af}
+.close-btn{background:none;border:none;color:#9ca3af;font-size:20px;cursor:pointer}
+.close-btn:hover{color:#fff}
+.modal-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:16px 20px;border-bottom:1px solid #374151}
+.info-box{background:#37415133;border-radius:8px;padding:8px;text-align:center}
+.info-box .lbl{font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+.info-box .val{font-size:13px;font-weight:600;color:#fff;margin-top:2px;text-transform:capitalize}
+.best-record{padding:12px 20px;border-bottom:1px solid #374151;background:#facc1508}
+.best-record .lbl{font-size:11px;color:#9ca3af}
+.best-record .val{font-size:28px;font-weight:700;color:#facc15}
+.result-banner{padding:16px 20px;border-bottom:1px solid #374151;text-align:center}
+.result-banner.win{background:#22c55e11}
+.result-banner.lose{background:#ef444411}
+.result-banner .emoji{font-size:28px;margin-bottom:4px}
+.result-banner .title{font-size:16px;font-weight:700}
+.result-banner .sub{font-size:12px;opacity:.7;margin-top:2px}
+.form-area{padding:16px 20px;border-bottom:1px solid #374151}
+.form-area label{font-size:13px;color:#9ca3af;display:block;margin-bottom:8px}
+.form-row{display:flex;gap:8px}
+.form-row input{flex:1;background:#374151;border:1px solid #4b5563;border-radius:8px;padding:10px 14px;color:#fff;font-size:15px}
+.form-row input:focus{outline:none;box-shadow:0 0 0 2px #facc15}
+.form-row button{background:#facc15;color:#111827;font-weight:700;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;white-space:nowrap}
+.form-row button:hover{background:#fde047}
+.records-list{padding:16px 20px}
+.records-list h3{font-size:12px;font-weight:600;color:#9ca3af;margin-bottom:10px}
+.record-item{display:flex;align-items:center;font-size:13px;padding:8px 10px;border-radius:8px;background:#37415133;margin-bottom:4px}
+.record-item .rank{width:24px;color:#6b7280;font-size:11px;font-family:monospace}
+.record-item .player-name{flex:1;color:#d1d5db}
+.record-item .watts{color:#facc15;font-weight:700}
+.record-item .date{color:#6b7280;font-size:10px;margin-left:12px}
+.leaderboard .row{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid #37415144}
+.leaderboard .medal{font-size:20px;width:32px}
+.leaderboard .avatar{font-size:20px;margin-right:10px}
+.leaderboard .pname{color:#fff;font-weight:500;font-size:14px}
+.leaderboard .pbest{color:#9ca3af;font-size:11px}
+.leaderboard .pcount{text-align:right;flex:1}
+.leaderboard .pcount .num{font-size:18px;font-weight:700;color:#fff}
+.leaderboard .pcount .lbl{font-size:11px;color:#9ca3af}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:6px}
+.duration-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;padding:16px 20px}
+.dur-box{text-align:center;padding:10px;background:#37415133;border-radius:8px}
+.dur-box .dlabel{font-size:11px;color:#9ca3af;margin-bottom:4px}
+.dur-box .dval{font-size:20px;font-weight:700;color:#fff}
+.recent .item{display:flex;align-items:center;padding:8px 20px;font-size:13px;border-bottom:1px solid #37415133}
+.recent .pn{color:#fff;font-weight:500}
+.recent .w{color:#facc15;font-weight:700}
+.recent .d{color:#6b7280;font-size:11px;margin-left:auto}
+.legend{padding:10px 20px;border-top:1px solid #374151;display:flex;gap:16px;font-size:11px;color:#9ca3af;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.empty-cell{visibility:hidden}
+@media(max-width:700px){.territory-grid{grid-template-columns:repeat(3,1fr)}.stats-grid{grid-template-columns:repeat(2,1fr)}.header-inner{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const TERRITORIES=[
+{id:"flachland-nord",name:"Flachland Nord",description:"Flaches Terrain im Norden",difficulty:"leicht",duration:"1min",icon:"\u{1F33E}",row:0,col:1},
+{id:"waldgebiet",name:"Waldgebiet",description:"Dichter Wald mit moderaten Steigungen",difficulty:"mittel",duration:"5min",icon:"\u{1F332}",row:0,col:3},
+{id:"sprint-arena",name:"Sprint Arena",description:"Kurze, explosive Sprints gefragt!",difficulty:"mittel",duration:"5s",icon:"\u26A1",row:1,col:0},
+{id:"huegel-land",name:"H\u00FCgelland",description:"Sanfte H\u00FCgel fordern deine Ausdauer",difficulty:"mittel",duration:"5min",icon:"\u26F0\uFE0F",row:1,col:2},
+{id:"see-region",name:"See-Region",description:"Windiges Terrain rund um den See",difficulty:"leicht",duration:"1min",icon:"\u{1F3DE}\uFE0F",row:1,col:4},
+{id:"vulkan-tal",name:"Vulkan-Tal",description:"Extreme Steigungen im Vulkangebiet",difficulty:"extrem",duration:"20min",icon:"\u{1F30B}",row:2,col:1},
+{id:"kuestenstrasse",name:"K\u00FCstenstra\u00DFe",description:"Schnelle Stra\u00DFe entlang der K\u00FCste",difficulty:"mittel",duration:"5min",icon:"\u{1F3D6}\uFE0F",row:2,col:3},
+{id:"bergpass",name:"Bergpass",description:"Der h\u00F6chste Punkt - nur f\u00FCr die St\u00E4rksten",difficulty:"extrem",duration:"60min",icon:"\u{1F3D4}\uFE0F",row:3,col:0},
+{id:"stadtgebiet",name:"Stadtgebiet",description:"Urbanes Terrain mit Ampelsprints",difficulty:"leicht",duration:"5s",icon:"\u{1F3D9}\uFE0F",row:3,col:2},
+{id:"koenigsweg",name:"K\u00F6nigsweg",description:"Der legend\u00E4re Weg der Champions",difficulty:"schwer",duration:"20min",icon:"\u{1F451}",row:3,col:4},
+{id:"windmuehlen-feld",name:"Windm\u00FChlen-Feld",description:"Starker Gegenwind auf offener Fl\u00E4che",difficulty:"schwer",duration:"20min",icon:"\u{1F32C}\uFE0F",row:4,col:1},
+{id:"gipfelkreuz",name:"Gipfelkreuz",description:"Die ultimative Herausforderung am Gipfel",difficulty:"extrem",duration:"60min",icon:"\u{1F3C6}",row:4,col:3}
+];
+const PLAYERS=[
+{id:"p1",name:"Rider Alpha",avatar:"\u{1F6B4}",color:"#3b82f6"},
+{id:"p2",name:"Rider Beta",avatar:"\u{1F6B4}\u200D\u2640\uFE0F",color:"#ef4444"},
+{id:"p3",name:"Rider Gamma",avatar:"\u{1F6B5}",color:"#10b981"},
+{id:"p4",name:"Rider Delta",avatar:"\u{1F6B5}\u200D\u2640\uFE0F",color:"#f59e0b"}
+];
+const DURATIONS=[{v:"5s",l:"5 Sekunden"},{v:"1min",l:"1 Minute"},{v:"5min",l:"5 Minuten"},{v:"20min",l:"20 Minuten"},{v:"60min",l:"60 Minuten"}];
+const STORAGE_KEY="power-territory-game";
+
+let state=loadState();
+let activeTab="map";
+let selectedTerritory=null;
+let lastResult=null;
+
+function loadState(){
+  try{const s=localStorage.getItem(STORAGE_KEY);if(s)return JSON.parse(s)}catch{}
+  const conquests={};TERRITORIES.forEach(t=>{conquests[t.id]={conqueredBy:null,bestWatts:0,records:[]}});
+  return{currentPlayer:"p1",conquests,records:[]};
+}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function getPlayer(id){return PLAYERS.find(p=>p.id===id)}
+function playerTerritories(pid){return Object.values(state.conquests).filter(c=>c.conqueredBy===pid).length}
+function playerBest(pid){const r=state.records.filter(r=>r.pid===pid);return r.length?Math.max(...r.map(r=>r.watts)):0}
+function playerBestDur(pid,dur){const r=state.records.filter(r=>r.pid===pid&&r.dur===dur);return r.length?Math.max(...r.map(r=>r.watts)):0}
+
+function render(){
+  const cp=getPlayer(state.currentPlayer);
+  let h=`<header><div class="header-inner"><div class="logo"><span>\u26A1</span><div><h1>Power Territory</h1><p>Wattbestwerte & Gebietseroberungen</p></div></div><div class="players"><label>Spieler:</label>`;
+  PLAYERS.forEach(p=>{h+=`<button class="player-btn${p.id===state.currentPlayer?" active":""}" style="${p.id===state.currentPlayer?"background:"+p.color:""}" onclick="selectPlayer('${p.id}')">${p.avatar} ${p.name}</button>`});
+  h+=`</div></div></header>`;
+  h+=`<nav><div class="nav-inner"><div class="tabs"><button class="tab${activeTab==="dashboard"?" active":""}" onclick="switchTab('dashboard')">\u{1F4CA} Dashboard</button><button class="tab${activeTab==="map"?" active":""}" onclick="switchTab('map')">\u{1F5FA}\uFE0F Gebietskarte</button></div><button class="reset-btn" onclick="resetGame()">Spiel zur\u00FCcksetzen</button></div></nav>`;
+  h+=`<main>`;
+  if(activeTab==="dashboard")h+=renderDashboard(cp);
+  else h+=renderMap();
+  h+=`</main>`;
+  if(selectedTerritory)h+=renderModal();
+  document.getElementById("app").innerHTML=h;
+}
+
+function renderDashboard(cp){
+  const total=TERRITORIES.length,conquered=Object.values(state.conquests).filter(c=>c.conqueredBy).length;
+  let h=`<div class="stats-grid">`;
+  h+=statCard("\u{1F5FA}\uFE0F","Gebiete gesamt",total);
+  h+=statCard("\u2694\uFE0F","Erobert",conquered+"/"+total);
+  h+=statCard("\u{1F4CA}","Gesamt-Records",state.records.length);
+  h+=statCard("\u26A1","Dein Bestwert",cp?playerBest(cp.id)+"W":"\u2014");
+  h+=`</div>`;
+  // Leaderboard
+  const sorted=[...PLAYERS].sort((a,b)=>playerTerritories(b.id)-playerTerritories(a.id));
+  const medals=["\u{1F947}","\u{1F948}","\u{1F949}",""];
+  h+=`<div class="card"><div class="card-header">\u{1F3C6} Rangliste</div><div class="leaderboard">`;
+  sorted.forEach((p,i)=>{
+    h+=`<div class="row${p.id===state.currentPlayer?" style='background:#37415133'":""}"><span class="medal">${medals[i]||i+1+"."}</span><span class="avatar">${p.avatar}</span><div><div class="pname">${p.name} <span class="dot" style="background:${p.color}"></span></div><div class="pbest">Bestwert: ${playerBest(p.id)>0?playerBest(p.id)+"W":"Noch kein Record"}</div></div><div class="pcount"><div class="num">${playerTerritories(p.id)}</div><div class="lbl">Gebiete</div></div></div>`;
+  });
+  h+=`</div></div>`;
+  // Duration bests
+  if(cp){
+    h+=`<div class="card"><div class="card-header">\u26A1 Deine Bestwerte nach Dauer</div><div class="duration-grid">`;
+    DURATIONS.forEach(d=>{const b=playerBestDur(cp.id,d.v);h+=`<div class="dur-box"><div class="dlabel">${d.l}</div><div class="dval">${b>0?b+"W":"\u2014"}</div></div>`});
+    h+=`</div></div>`;
+  }
+  // Recent
+  if(state.records.length){
+    h+=`<div class="card"><div class="card-header">\u{1F4CB} Letzte Eintr\u00E4ge</div><div class="recent">`;
+    [...state.records].reverse().slice(0,10).forEach(r=>{
+      const p=getPlayer(r.pid);
+      const d=new Date(r.date);
+      h+=`<div class="item"><span style="margin-right:6px">${p?.avatar}</span><span class="pn">${p?.name}</span>&nbsp;\u2014&nbsp;<span class="w">${r.watts}W</span>&nbsp;(${r.dur})<span class="d">${d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})} ${d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</span></div>`;
+    });
+    h+=`</div></div>`;
+  }
+  return h;
+}
+
+function statCard(icon,label,value){return `<div class="stat"><div><span class="icon">${icon}</span> <span class="label">${label}</span></div><div class="value">${value}</div></div>`}
+
+function renderMap(){
+  let h=`<div class="card"><div class="card-header">\u{1F5FA}\uFE0F Gebietskarte <span style="font-size:11px;font-weight:400;color:#9ca3af;margin-left:8px">Klicke auf ein Gebiet, um es herauszufordern</span></div><div class="territory-grid">`;
+  const maxR=Math.max(...TERRITORIES.map(t=>t.row)),maxC=Math.max(...TERRITORIES.map(t=>t.col));
+  for(let r=0;r<=maxR;r++){for(let c=0;c<=maxC;c++){
+    const t=TERRITORIES.find(t=>t.row===r&&t.col===c);
+    if(!t){h+=`<div class="territory empty-cell"></div>`;continue}
+    const cq=state.conquests[t.id];
+    const owner=cq?.conqueredBy?getPlayer(cq.conqueredBy):null;
+    const sel=selectedTerritory?.id===t.id;
+    let style=owner?`border-color:${owner.color};box-shadow:0 0 12px ${owner.color}33`:"";
+    h+=`<div class="territory border-${t.difficulty}${sel?" selected":""}" style="${style}" onclick="openTerritory('${t.id}')"><span class="icon">${t.icon}</span><span class="name">${t.name}</span><span class="diff diff-${t.difficulty}">${t.difficulty}</span>${owner?`<span class="owner" style="color:${owner.color}">${owner.avatar} ${cq.bestWatts}W</span>`:`<span class="unowned">unerobert</span>`}</div>`;
+  }}
+  h+=`</div><div class="legend"><span><i style="background:#16a34a44;border:1px solid #16a34a88"></i> Leicht</span><span><i style="background:#2563eb44;border:1px solid #2563eb88"></i> Mittel</span><span><i style="background:#ea580c44;border:1px solid #ea580c88"></i> Schwer</span><span><i style="background:#dc262644;border:1px solid #dc262688"></i> Extrem</span></div></div>`;
+  return h;
+}
+
+function renderModal(){
+  const t=selectedTerritory,cq=state.conquests[t.id];
+  const owner=cq?.conqueredBy?getPlayer(cq.conqueredBy):null;
+  let h=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">`;
+  h+=`<div class="modal-header"><div class="info"><span class="icon">${t.icon}</span><div><h2>${t.name}</h2><p>${t.description}</p></div></div><button class="close-btn" onclick="closeModal()">\u2715</button></div>`;
+  h+=`<div class="modal-info"><div class="info-box"><div class="lbl">Schwierigkeit</div><div class="val">${t.difficulty}</div></div><div class="info-box"><div class="lbl">Dauer</div><div class="val">${t.duration}</div></div><div class="info-box"><div class="lbl">Besitzer</div><div class="val">${owner?owner.avatar+" "+owner.name:"Niemand"}</div></div></div>`;
+  if(cq.bestWatts>0)h+=`<div class="best-record"><div class="lbl">Zu schlagender Bestwert:</div><div class="val">${cq.bestWatts}W</div></div>`;
+  if(lastResult&&lastResult.tid===t.id){
+    if(lastResult.won)h+=`<div class="result-banner win"><div class="emoji">\u{1F389}\u{1F3C6}</div><div class="title" style="color:#4ade80">Gebiet erobert!</div><div class="sub" style="color:#86efac">Neuer Bestwert: ${lastResult.watts}W</div></div>`;
+    else h+=`<div class="result-banner lose"><div class="emoji">\u{1F4AA}</div><div class="title" style="color:#f87171">Nicht genug Watt!</div><div class="sub" style="color:#fca5a5">Dein Wert: ${lastResult.watts}W \u2014 Brauchst mehr als ${cq.bestWatts}W</div></div>`;
+  }
+  h+=`<div class="form-area"><label>Neuen Watt-Wert eintragen (${t.duration}):</label><div class="form-row"><input type="number" id="wattInput" min="1" max="3000" placeholder="z.B. 350" onkeydown="if(event.key==='Enter')submitWatt()"/><button onclick="submitWatt()">Eintragen \u26A1</button></div></div>`;
+  const sorted=[...cq.records].sort((a,b)=>b.watts-a.watts);
+  if(sorted.length){
+    h+=`<div class="records-list"><h3>Alle Eintr\u00E4ge f\u00FCr dieses Gebiet:</h3>`;
+    sorted.forEach((r,i)=>{const p=getPlayer(r.pid);const d=new Date(r.date);h+=`<div class="record-item"><span class="rank">${i+1}.</span><span style="margin-right:6px">${p?.avatar}</span><span class="player-name">${p?.name}</span><span class="watts">${r.watts}W</span><span class="date">${d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})} ${d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</span></div>`});
+    h+=`</div>`;
+  }
+  h+=`</div></div>`;return h;
+}
+
+function selectPlayer(id){state.currentPlayer=id;save();render()}
+function switchTab(t){activeTab=t;render()}
+function openTerritory(id){selectedTerritory=TERRITORIES.find(t=>t.id===id);lastResult=null;render();setTimeout(()=>{const i=document.getElementById("wattInput");if(i)i.focus()},50)}
+function closeModal(){selectedTerritory=null;lastResult=null;render()}
+function submitWatt(){
+  const input=document.getElementById("wattInput");if(!input)return;
+  const w=parseInt(input.value);if(isNaN(w)||w<=0)return;
+  const t=selectedTerritory,cq=state.conquests[t.id];
+  const rec={id:"r"+Date.now(),pid:state.currentPlayer,tid:t.id,watts:w,dur:t.duration,date:new Date().toISOString()};
+  cq.records.push(rec);state.records.push(rec);
+  const won=w>cq.bestWatts;
+  if(won){cq.conqueredBy=state.currentPlayer;cq.bestWatts=w}
+  lastResult={tid:t.id,won,watts:w};
+  save();render();
+  setTimeout(()=>{const i=document.getElementById("wattInput");if(i){i.value="";i.focus()}},50);
+}
+function resetGame(){if(!confirm("Spiel wirklich zur\u00FCcksetzen? Alle Daten gehen verloren!"))return;localStorage.removeItem(STORAGE_KEY);state=loadState();selectedTerritory=null;lastResult=null;render()}
+
+render();
+</script>
+</body>
+</html>
